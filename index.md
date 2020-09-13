@@ -4,7 +4,7 @@
   - [Datakilder](#datakilder)
     - [Primære](#primære)
     - [Sekundære](#sekundære)
-  - [](#)
+  - [Design](#design)
 
 ## Formål
 Det kan være interessant å sammenligne totalt antall innbyggere i en region mot hvor mange som tar høyere utdanning der og diverse andre sammenstillinger som kanskje kommer opp underveis. Dette vil da ikke nødvendigvis danne et hundre prosent korrekt bilde av situasjonen da det er flere faktorer (_fjernstudenter, pendlere, etc_) som spiller inn. Jeg har derfor valgt å se på data fra NSD og SSB i første rekke.
@@ -17,4 +17,4 @@ Det kan være interessant å sammenligne totalt antall innbyggere i en region mo
 ### Sekundære
 Jeg vurderte [BaseBibliotek](https://www.nb.no/basebibliotek/?lang=no) som et alternativ. Etter å ha undersøkt datasettet de tilbyr er dette egentlig ikke av veldig stor interesse per i dag. Mulig kombineres med data fra NSD for å vise bittelitt informasjon om lokalt høgskole-/universitetsbibliotek.
 
-## 
+## Design
