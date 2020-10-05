@@ -52,7 +52,7 @@ Eventuelle søk må da kunne (1) finne en/flere institusjoner, (2) innhente data
 
 ### Data: Posten/Bring
 Format: CSV
-Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil: ÆØÅ representeres som **?**. Fordi jeg planlegger å ikke bare vise informasjon fra filen men også bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket ("finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). Dersom vi ønsker fylkesstatistikk må vi enten søke på fylke i en SSB-tabell ~~eller anvende de første 2 tegnene i kolonne 3 for å oversette til søkestreng~~. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen.
+Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil: ÆØÅ representeres som **?**. Fordi jeg planlegger å ikke bare vise informasjon fra filen men også bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket ("finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). Dersom vi ønsker fylkesstatistikk må vi enten søke på fylke i en SSB-tabell ~~eller anvende de første 2 tegnene i kolonne 3 for å oversette til søkestreng~~.
 
 <details><summary>Fylkesnummer</summary>
 03 Oslo, 11 Rogaland, 15 Møre og Romsdal, 18 Nordland, 21 Svalbard, 22 Jan Mayen, 30 Viken, 34 Innlandet, 38 Vestfold og Telemark, 42 Agder, 46 Vestland, 50 Trøndelag, 54 Troms og Finnmark.
@@ -66,6 +66,7 @@ Vi skal i første omgang hente befolkningstall etter kjønn og alder knyttet til
 
 Jeg henter [07459: Befolkning, etter region, kjønn, alder, statistikkvariabel og år](https://data.ssb.no/api/v0/no/table/07459/) fra SSB med alle kommuner og de tre siste år i CSV. API-spørring ville sett slik ut:
 <details><summary>API-spørring</summary>
+https://data.ssb.no/api/v0/no/table/07459/
 {
   "query": [
     {
@@ -477,7 +478,11 @@ Jeg henter [07459: Befolkning, etter region, kjønn, alder, statistikkvariabel o
     }
   ],
   "response": {
-    "format": "json-stat2"
+    "format": "csv2"
   }
 }
 </details>
+
+MEN. Etter å ha lekt meg litt med dette innser jeg jo at vi egentlig bare kan hente ut én kommune fra SSB. Hvorfor hente inn hele greia? Det vil bare gjøre ting treigere. Derfor erstatter jeg samtlike K-koder med én variabel. Jeg lager da en dynamisk spørring ved å erstatte *alle* K-kodene i spørringen med variabelen kommuneTilSSB, som er informert av følgende: prefiksSSB = 'K-' kommuneID = '3001' kommuneTilSSB = prefiksSSB + kommuneID. Jeg gjør det samme med år, så kan brukeren velge det selv. Mindre stress på API og raskere respons = bra - gjør så mye på serveren som mulig. Vi får da en string tilbake som (ikke) behøver dekoding, og bruker io for å gjøre det til en df.
+
+((# Skriv om APIet og problemer med JSON-stat. Hvordan oppleves dokumentasjonen?))
