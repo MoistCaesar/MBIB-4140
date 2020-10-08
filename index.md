@@ -98,9 +98,11 @@ Disse variablene er tilgjengelige i tabell *123-Registrerte studenter* ([dokumen
 ]}
 </details>
 
+For å få tak i andelen kvinner og menn må vi besøke en annen tabell. Denne mangler litt informasjon som eksisterer i tabell 123, og jeg vurderer det som mer interessant å inkludere tabell 123. Jeg vil komme tilbake til dette ved et senere tidspunkt etterhvert som jeg kommer nærmere produksjonslinjens hovedmål.
+
 ### Data: Posten/Bring
 Format: CSV
-Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil: ÆØÅ representeres som **?**. Fordi jeg planlegger å ikke bare vise informasjon fra filen men også bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket (fritekst "finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). Pandas fjerner ledende nuller i integer (eks. 0452 blir til 452). Vi må derfor reintrodusere disse til postkodene våre før vi kan anvende dem andre steder.
+Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil (ÆØÅ representeres som **?**). Fordi jeg planlegger å bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket (fritekst "finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). I tillegg fjerner Pandas/Python ledende nuller i integer (eks. 0452 blir til 452). Vi må derfor reintrodusere disse til postkodene våre i det de anvendes for å søke i de andre datakildene våre.
 
 <details><summary>Fylkesnummer</summary>
 03 Oslo, 11 Rogaland, 15 Møre og Romsdal, 18 Nordland, 21 Svalbard, 22 Jan Mayen, 30 Viken, 34 Innlandet, 38 Vestfold og Telemark, 42 Agder, 46 Vestland, 50 Trøndelag, 54 Troms og Finnmark.
@@ -173,7 +175,7 @@ https://data.ssb.no/api/v0/no/table/07459/
 }
 </details>
 
-Etter å ha lekt meg litt med denne dataen innser jeg jo at vi egentlig bare kan hente ut én kommune fra SSB. Hvorfor hente inn hele greia? Det vil bare gjøre ting tregere. Jeg lager da en dynamisk spørring ved å erstatte *alle* K-kodene i spørringen med variabelen kommuneTilSSB, som er informert av følgende: prefiksSSB = 'K-' kommuneID = *X* kommuneTilSSB = prefiksSSB + kommuneID. Jeg gjør det samme med år, så kan brukeren velge det selv. Vi får da en string tilbake som (ikke) behøver dekoding, og bruker io for å gjøre det til en df.
+Etter å ha lekt meg litt med denne dataen innser jeg jo at vi egentlig bare kan hente ut én kommune fra SSB. Hvorfor hente inn hele greia? Det vil bare gjøre ting tregere. Jeg lager da en dynamisk spørring ved å erstatte *alle* K-kodene i spørringen med variabelen kommuneTilSSB, som er informert av følgende: prefiksSSB = 'K-' kommuneID = *X* kommuneTilSSB = prefiksSSB + kommuneID. Jeg gjør det samme med år, så kan brukeren velge det selv. Vi får da en string tilbake og bruker io for å gjøre den til en df. 
 
 Loke Sjølie
 08-10-2020
