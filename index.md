@@ -8,18 +8,19 @@
     - [Data: NSD](#data-nsd)
     - [Data: Posten/Bring](#data-postenbring)
     - [Data: SSB](#data-ssb)
-I min erfaring bør denne filen åpnes i chromium. Jeg er ikke helt sikker på om dette er én og en halv A4-side, og jeg har valgt å holde meg til en litt mindre formell stil.
 
 ## Formål
-Det kan være interessant å sammenligne totalt antall innbyggere i en region mot hvor mange som tar høyere utdanning der og diverse andre sammenstillinger som kanskje kommer opp underveis. Dette vil da ikke nødvendigvis danne et hundre prosent korrekt bilde av situasjonen da det er flere faktorer (_fjernstudenter, pendlere, etc_) som spiller inn. Jeg har derfor valgt å se på data fra NSD og SSB i første rekke, selv om sammenstillingen av denne informasjonen svært sikkert allerede eksisterer.
+Det kan være interessant å sammenligne totalt antall innbyggere i en region mot hvor mange som tar høyere utdanning der og diverse andre sammenstillinger som kanskje kommer opp underveis. Dette vil da ikke nødvendigvis danne et hundre prosent korrekt bilde av situasjonen da det er flere faktorer (_fjernstudenter, pendlere, etc_) som spiller inn. Jeg har derfor valgt å se på data fra NSD og SSB i første rekke, selv om sammenstillinger av denne informasjonen svært sikkert allerede eksisterer.
 
 ## Datakilder
 ### Primære
 [**SSB**](https://data.norge.no/datasets/e74957b7-d052-4d93-9afb-4a2fce65882f) for demografisk informasjon per region. SSB er et naturlig valg for denne typen informasjon i Norge, og gir oss informasjon om demografi, kriminalitet, flytting og lignende. Data er tilgjengelig både i CSV og JSON-STAT.
+
 [**NSD**](https://data.norge.no/datasets/9efe2de1-1093-4662-a8cb-fd7907bae9bc) tilbyr offentlig tilgjengelig data om høgskoler og universitet. Igjen, et svært naturlig og konvensjonelt valg. Her får vi diverse datasett, for eksempel oversikt over hvor mange har søkt om, er i, eller har fullført høyere utdanning. Data er tilgjengelig i CSV og JSON over **90** tabeller.
 
 ### Sekundære
 Jeg vurderte [BaseBibliotek](https://www.nb.no/basebibliotek/?lang=no) som et alternativ. Etter å ha undersøkt datasettet de tilbyr er dette egentlig ikke av veldig stor interesse per i dag. Mulig kombineres med data fra NSD for å vise bittelitt informasjon om lokalt høgskole-/universitetsbibliotek.
+
 [NSR](https://data-nsr.udir.no//swagger/ui/index) kan være av interesse dersom vi vil inkludere utdanning på lavere trinn også.
 
 ## Design
@@ -99,7 +100,7 @@ Disse variablene er tilgjengelige i tabell *123-Registrerte studenter* ([dokumen
 
 ### Data: Posten/Bring
 Format: CSV
-Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil: ÆØÅ representeres som **?**. Fordi jeg planlegger å ikke bare vise informasjon fra filen men også bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket ("finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). Pandas fjerner ledende nuller i integer (eks. 0452 blir til 452). Vi må derfor reintrodusere disse til postkodene våre før vi kan anvende dem andre steder.
+Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-format](https://www.bring.no/radgivning/sende-noe/adressetjenester/postnummer). *Uheldigvis* har Postens tabulatorseparerte ANSI-fil tegnsettfeil: ÆØÅ representeres som **?**. Fordi jeg planlegger å ikke bare vise informasjon fra filen men også bruke responsen som søkeord er dette en katastrofal feil. Heldigvis er denne tegnsettfeilen ikke tilstede i den alternative .xslx-filen, hvilket tillater meg å konvertere denne filen til en kommaseparert CSV uten tegnsettfeil. Dataen er strukturert som følger: 1 postkode, 2 sted, 3 fylkenummer og kommunenummer, 4 kommune, 5 postkodetype. Disse kodene er forøvrig innhentet fra SSB, og samsvarer med de som ellers anvendes i forvaltningen. For mine behov er jeg interessert i å søke gjennom kolonne 1 og hente data fra 4. Vi må observere at kolonne 3 har verdier som kan sammenfalle med 1, hvilket ekskluderer det aller enkleste søket (fritekst "finn 3001" returnerer ikke postkode 3001 Drammen, men 3001 Halden). Pandas fjerner ledende nuller i integer (eks. 0452 blir til 452). Vi må derfor reintrodusere disse til postkodene våre før vi kan anvende dem andre steder.
 
 <details><summary>Fylkesnummer</summary>
 03 Oslo, 11 Rogaland, 15 Møre og Romsdal, 18 Nordland, 21 Svalbard, 22 Jan Mayen, 30 Viken, 34 Innlandet, 38 Vestfold og Telemark, 42 Agder, 46 Vestland, 50 Trøndelag, 54 Troms og Finnmark.
@@ -107,7 +108,7 @@ Heldigvis har Posten *(**Bring**)* [data om postnummer i Norge, dog i ANSI-forma
 
 ### Data: SSB
 Format: JSON-STAT/CSV
-[Dokumentasjon for SSB](https://www.ssb.no/omssb/tjenester-og-verktoy/api/px-api/_attachment/248256?). SSB tilbyr flere APIer, hvorav én gir oss predefinerte datasett og en annen gir oss mulighet til å definere egne datasett. GET-protokoll fungerer kun for å hente hele datasett fra førstnevnte. For egendefinerte datasett skal POST anvendes. Fra SSB får vi respons i form av CSV eller JSON-Stat, en type JSON utformet for statistiske formål. Uten et bibliotek som kan tolke dette formatet er json-stat nesten uleselig. I Python kan vi bruke [pyjstat](https://pypi.org/project/pyjstat/) for å konvertere json-stat til pandas.
+[Dokumentasjon for SSB](https://www.ssb.no/omssb/tjenester-og-verktoy/api/px-api/_attachment/248256?). SSB tilbyr flere APIer, hvorav én gir oss predefinerte datasett og en annen gir oss mulighet til å definere egne datasett. GET-protokoll fungerer kun for å hente hele datasett fra førstnevnte. For egendefinerte datasett skal POST anvendes. Fra SSB får vi respons i form av CSV eller JSON-Stat, en type JSON utformet for statistiske formål. Uten et bibliotek som kan tolke dette formatet er json-stat nesten uleselig. I Python kan vi bruke [pyjstat](https://pypi.org/project/pyjstat/) for å konvertere json-stat til pandas. Dette krever installasjon via PIP.
 
 Vi skal i første omgang hente befolkningstall etter kjønn og alder knyttet til kommune. Det er da aktuelt å se på det predefinerte settet [577297 Befolkning, etter kjønn og ettårig alder. Kommuner, pr 1.1. siste år](http://data.ssb.no/api/v0/dataset/577297.csv?lang=no) - men ettårig alder er strengt tatt mye mer granulært enn det mine behov krever. Jeg peiler meg derfor inn på en tabell med femårig- eller tiårig alder som i settet [11727 Befolkning, etter kjønn og 10 funksjonelle aldersgrupper. Kommuner, pr. 1.1.2007 - siste år](http://data.ssb.no/api/v0/dataset/85699.csv?lang=no) eller et egendefinert sett. Etter noe eksperimentering bestemmer jeg meg for å gjøre sistnevnte.
 
